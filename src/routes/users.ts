@@ -7,6 +7,7 @@ import {
   validateRequiredUserData,
   validatePartialUserData,
 } from "../middleware/user-validation";
+import { authenticateToken } from "../middleware/auth-validation";
 
 const router = Router();
 
@@ -216,6 +217,7 @@ router.get("/:id", validateUserId, async (req, res) => {
  */
 router.put(
   "/:id",
+  authenticateToken,
   validateUserId,
   validateRequiredUserData,
   async (req, res) => {
@@ -227,6 +229,13 @@ router.put(
         "UPDATE users SET username = ?, email = ? WHERE id = ?",
         [username, email, userId]
       );
+
+      if (req.user!.id !== userId) {
+        return res.status(403).json({
+          error: "Users can only update their own account",
+        });
+      }
+
       if (result.affectedRows === 0) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -277,6 +286,7 @@ router.put(
  */
 router.patch(
   "/:id",
+  authenticateToken,
   validateUserId,
   validatePartialUserData,
   async (req, res) => {
@@ -284,6 +294,11 @@ router.patch(
       const userId = Number(req.params.id);
       const { username, email } = req.body;
 
+      if (req.user!.id !== userId) {
+        return res.status(403).json({
+          error: "Users can only update their own account",
+        });
+      }
       const fieldsToUpdate = [];
       const values = [];
       if (username) {
