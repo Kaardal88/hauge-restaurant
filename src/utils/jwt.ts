@@ -1,8 +1,14 @@
 import jwt from "jsonwebtoken";
-/* import dotenv from "dotenv";
-dotenv.config(); */
 
-const JWT_SECRET = process.env.JWT_SECRET!;
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET environment variable is required");
+  }
+  return secret;
+}
+
+const JWT_SECRET = getJwtSecret();
 
 export function generateToken(userId: number) {
   return jwt.sign({ userId }, JWT_SECRET, { expiresIn: "24h" });

@@ -225,16 +225,16 @@ router.put(
       const userId = Number(req.params.id);
       const { username, email } = req.body;
 
-      const [result]: [ResultSetHeader, any] = await pool.execute(
-        "UPDATE users SET username = ?, email = ? WHERE id = ?",
-        [username, email, userId]
-      );
-
       if (req.user!.id !== userId) {
         return res.status(403).json({
           error: "Users can only update their own account",
         });
       }
+
+      const [result]: [ResultSetHeader, any] = await pool.execute(
+        "UPDATE users SET username = ?, email = ? WHERE id = ?",
+        [username, email, userId]
+      );
 
       if (result.affectedRows === 0) {
         return res.status(404).json({ message: "User not found" });
@@ -356,9 +356,15 @@ router.patch(
  *       "500":
  *         description: Internal server error
  */
-router.delete("/:id", validateUserId, async (req, res) => {
+router.delete("/:id", authenticateToken, validateUserId, async (req, res) => {
   try {
     const userId = Number(req.params.id);
+
+    if (req.user!.id !== userId) {
+      return res.status(403).json({
+        error: "Users can only update their own account",
+      });
+    }
 
     const [result]: [ResultSetHeader, any] = await pool.execute(
       "DELETE FROM users WHERE id = ?",

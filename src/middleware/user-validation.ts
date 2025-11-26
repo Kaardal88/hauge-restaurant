@@ -17,7 +17,7 @@ const partialUserDataSchema = z.object({
   username: z
     .string()
     .min(2, "Username must be at least 2 characters")
-    .max(50, "Username must be at least 50 characters")
+    .max(50, "Username must not exceed 50 characters")
     .optional(),
   email: z.string("Email must be a valid email").optional(),
 });
@@ -47,12 +47,10 @@ export const validateRequiredUserData = (
   const result = requiredUserDataSchema.safeParse(req.body);
 
   if (!result.success) {
-    return res
-      .status(400)
-      .json({
-        error: "Validation failed",
-        details: result.error.issues.map((issue) => issue.message),
-      });
+    return res.status(400).json({
+      error: "Validation failed",
+      details: result.error.issues.map((issue) => issue.message),
+    });
   }
   next();
 };
